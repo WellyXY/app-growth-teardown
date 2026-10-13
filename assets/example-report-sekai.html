@@ -1,0 +1,430 @@
+<title>Sekai 增長拆解</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: single reading column (~72ch) with full-width chart bands; report, not landing page */
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --fg:#16181D; --muted:#5B6170; --line:#DDE0E6;
+  --accent:#2F55E4; --accent-soft:#E6ECFD; --hit:#E0901A; --hit-soft:#FCF1DE;
+  --paid:#1F8A6E; --paid-soft:#DDF3EC;
+  --ok:#1E8A5A; --warn:#B7791F;
+  --font-display:"Noto Sans TC","PingFang TC","Heiti TC",system-ui,sans-serif;
+  --font-body:"Noto Sans TC","PingFang TC","Heiti TC",system-ui,sans-serif;
+  --font-data:"IBM Plex Mono","SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111318; --surface:#181B22; --fg:#E9EBF0; --muted:#9AA0AE; --line:#2A2E38;
+  --accent:#7D98FF; --accent-soft:#1E2640; --hit:#F2AE4A; --hit-soft:#33280F;
+  --paid:#4CC3A2; --paid-soft:#123129;
+  --ok:#4CC08A; --warn:#E3B062; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111318; --surface:#181B22; --fg:#E9EBF0; --muted:#9AA0AE; --line:#2A2E38;
+  --accent:#7D98FF; --accent-soft:#1E2640; --hit:#F2AE4A; --hit-soft:#33280F;
+  --paid:#4CC3A2; --paid-soft:#123129;
+  --ok:#4CC08A; --warn:#E3B062; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.75;padding-inline:20px;padding-block:0 72px}
+.wrap{max-width:860px;margin:0 auto}
+a{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;line-height:1.3;margin:0}
+h1{font-size:clamp(34px,6vw,52px);font-weight:900;letter-spacing:-.01em}
+h2{font-size:26px;font-weight:900}
+h3{font-size:18px;font-weight:700}
+p{margin:0}
+.num{font-family:var(--font-data);font-variant-numeric:tabular-nums}
+
+header{padding-block:56px 36px;border-bottom:1px solid var(--line);display:grid;gap:14px}
+.eyebrow{font-family:var(--font-data);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:18px;color:var(--muted);max-width:62ch}
+.update{font-size:14px;color:var(--fg);background:var(--paid-soft);border-radius:10px;padding:10px 14px;max-width:68ch}
+
+section{padding-block:44px 8px;display:grid;gap:18px}
+.body{max-width:68ch;display:grid;gap:14px;color:var(--fg)}
+
+.verdict{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px 28px;display:grid;gap:14px}
+.verdict ol{margin:0;padding-left:1.3em;display:grid;gap:10px}
+.verdict strong{color:var(--accent)}
+.formula{font-weight:700;padding:14px 16px;border-radius:10px;background:var(--accent-soft);color:var(--fg)}
+
+.figures{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.fig{border-top:3px solid var(--fg);padding-top:10px;display:grid;gap:4px;min-width:0}
+.fig .v{font-family:var(--font-data);font-size:28px;font-weight:600;line-height:1.1}
+.fig .k{font-size:13px;color:var(--muted);line-height:1.5}
+@media (max-width:640px){.figures{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.timeline{list-style:none;margin:0;padding:0;display:grid}
+.timeline li{display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.timeline .d{font-family:var(--font-data);font-size:13px;color:var(--muted)}
+.timeline li.key .d{color:var(--hit);font-weight:600}
+.timeline li.key .t{font-weight:700}
+.timeline li.paid .d{color:var(--paid);font-weight:600}
+.timeline li.paid .t{font-weight:700}
+.chip{font-family:var(--font-data);font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip.hi{border-color:var(--ok);color:var(--ok)}
+.chip.mid{border-color:var(--warn);color:var(--warn)}
+@media (max-width:560px){.timeline li{grid-template-columns:minmax(0,1fr) auto}.timeline .d{grid-column:1/-1}}
+
+.chartbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 18px 14px;display:grid;gap:10px}
+.chart-title{font-size:14px;font-weight:700}
+.chart-scroll{overflow-x:auto}
+.chart-scroll svg{display:block;min-width:620px;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px}
+.note{font-size:13px;color:var(--muted)}
+
+.tbl-scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:14px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.06em}
+tr:last-child td{border-bottom:0}
+tr.peak td{background:var(--paid-soft)}
+td.v{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+td.n{font-family:var(--font-data);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.cap{font-family:var(--font-data);font-size:13px}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:6px;background:var(--hit-soft);color:var(--fg);white-space:nowrap}
+.tag.b{background:var(--accent-soft)}
+
+.evidence{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.evidence div{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--paid);border-radius:10px;padding:16px;display:grid;gap:6px;min-width:0}
+.evidence b{font-size:15px}
+.evidence span{font-size:14px;color:var(--muted)}
+@media (max-width:720px){.evidence{grid-template-columns:minmax(0,1fr)}}
+
+.list{display:grid;counter-reset:n}
+.item{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;padding:18px 0;border-bottom:1px solid var(--line)}
+.item::before{counter-increment:n;content:counter(n);font-family:var(--font-data);font-weight:600;font-size:15px;color:var(--accent);padding-top:1px}
+.item .c{display:grid;gap:6px;min-width:0}
+.item ul{margin:0;padding-left:1.1em;display:grid;gap:4px;color:var(--muted)}
+.item p{color:var(--muted)}
+.item.new h3::after{content:"新增";font-family:var(--font-data);font-size:11px;font-weight:500;margin-left:8px;padding:1px 7px;border-radius:99px;background:var(--paid-soft);color:var(--paid);vertical-align:2px}
+
+.cost{border-left:3px solid var(--warn);padding:4px 0 4px 16px;color:var(--muted)}
+.take{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.take div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:6px;min-width:0}
+.take b{font-size:16px}
+.take span{font-size:14px;color:var(--muted)}
+@media (max-width:640px){.take{grid-template-columns:minmax(0,1fr)}}
+
+.limits ul,.sources ul{margin:0;padding-left:1.2em;display:grid;gap:6px;color:var(--muted);font-size:15px}
+.sources ul{font-size:14px}
+footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">競品增長分析 · 資料截至 2026-09-28</div>
+  <h1>Sekai 增長拆解</h1>
+  <p class="lede">Sekai 是一個「用一句話生成小遊戲」的 App。這份報告整理它什麼時候開始快速增長、流量從哪些渠道來，以及用了哪些傳播手段。</p>
+  <p class="update">9/29 更新：7 月後的增長主要仍是付費買量。TikTok 上百萬播放以上的影片按讚率多數低於 1%，很可能是花錢推廣的，先前「自然流量佔 60–75%」的推估已撤回。付費買量從 2025 年 11 月在 Google 開始。</p>
+</header>
+
+<section id="verdict">
+  <h2>結論</h2>
+  <div class="verdict">
+    <ol>
+      <li><strong>原本是角色扮演 App。</strong>2024 年以「Sekai: Roleplay Your Own Story」上架，是跟 AI 動漫角色聊天的 App。2025 年 12 月在同一個商店頁面轉型，累積的下載、評論和評分全部帶過來。</li>
+      <li><strong>小遊戲一上線就開始在 Google 買量。</strong>2025 年 11 月 21 日起投 Google 的 App 安裝影片廣告。2 月加大投放，Android 下載衝到每月約 40 萬；3 月收回，下載立刻腰斬。</li>
+      <li><strong>2026 年 7 月底真正爆發，主要仍是付費買量。</strong>Android 下載來到每月 130–170 萬，是 2025 年的十幾倍。除了 Google 和 Meta，TikTok 上幾支千萬播放的影片也很可能是花錢推廣的。TikTok 上幾乎沒有素人自發傳播。</li>
+    </ol>
+    <p class="formula">核心打法：早期用 Google 買量撐起 Android 基本盤 → TikTok 大量發「看起來不像廣告」的素材 → 挑出表現好的，在 TikTok、Meta、Google 花錢放大 → 用 App Store 活動頁和網頁接住搜尋流量。</p>
+  </div>
+  <div class="figures">
+    <div class="fig"><span class="v">130–170萬</span><span class="k">7 月後 Google Play 每月推估下載</span></div>
+    <div class="fig"><span class="v">469</span><span class="k">Google 廣告素材數，2025/11/21 起投</span></div>
+    <div class="fig"><span class="v">9,923萬</span><span class="k">官方 TikTok 314 支影片總播放</span></div>
+    <div class="fig"><span class="v">81%</span><span class="k">前 10 支 TikTok 影片佔總播放的比例</span></div>
+  </div>
+</section>
+
+<section id="timeline">
+  <h2>時間線</h2>
+  <ol class="timeline">
+    <li><span class="d">2024 年中</span><span class="t">以「Sekai: Roleplay Your Own Story」上架，主打跟 AI 動漫角色聊天、寫故事。</span><span class="chip hi">商店紀錄</span></li>
+    <li><span class="d">2024-08</span><span class="t">AI 工具推薦類網紅推廣，用「留言 AI 拿工具」導流。</span><span class="chip mid">搜尋摘要</span></li>
+    <li><span class="d">2025</span><span class="t">種子輪 600 萬美元，Mayfield 領投。Google Play 7 月前後破 100 萬下載。</span><span class="chip hi">新聞、AndroidRank</span></li>
+    <li class="key"><span class="d">2025-11-19</span><span class="t">小遊戲產品上線（當時叫 Sekai Jam），TikTok 官方號開始發片。</span><span class="chip hi">影片 ID 換算</span></li>
+    <li class="paid"><span class="d">2025-11-21</span><span class="t">開始投 Google 的 App 安裝影片廣告。</span><span class="chip hi">Google 廣告庫</span></li>
+    <li><span class="d">2025-12-16</span><span class="t">Google Play 改名「Sekai: Play · Build · Remix」，描述換成小遊戲。2026 年 1 月再改成現在的「Create · Remix · Play」。</span><span class="chip hi">Wayback 快照</span></li>
+    <li><span class="d">2026-01</span><span class="t">TikTok 鋪量：真人小網紅加上批量註冊帳號，全部用同一組標籤發片。Meta 開始測素材，每支只跑幾小時。</span><span class="chip hi">TikTok、Meta 廣告庫</span></li>
+    <li class="paid"><span class="d">2026-02</span><span class="t">Google 廣告加大到 100 支在投（新上 77 支），Android 下載衝到每月約 40 萬。</span><span class="chip hi">Google 廣告庫</span></li>
+    <li class="paid"><span class="d">2026-03</span><span class="t">Google 廣告收回，72 支在 3/15 前停掉，下載掉到每月約 20 萬。</span><span class="chip hi">Google 廣告庫</span></li>
+    <li class="paid"><span class="d">2026-05-13</span><span class="t">Meta 開始放量，素材是 TikTok 上跑過的影片。</span><span class="chip hi">Meta 廣告庫</span></li>
+    <li class="key"><span class="d">2026-06-01</span><span class="t">A 輪 2,000 萬美元（Khosla、Connect 領投）。公布累計 1,500 萬個小遊戲、每天新增 20 萬。</span><span class="chip hi">新聞</span></li>
+    <li class="key"><span class="d">2026-07-29</span><span class="t">Symphony Sketchpad 影片 1,580 萬播放。官方號 7 月 3,531 萬、8 月 5,338 萬播放。Google Play 7/22 前破 500 萬下載。</span><span class="chip hi">TikTok、Wayback</span></li>
+    <li><span class="d">2026 下半年</span><span class="t">GamesBeat 報導累計 2,000 萬個小遊戲、每天新增約 25 萬。</span><span class="chip hi">新聞</span></li>
+    <li><span class="d">2026-09</span><span class="t">Google 在投廣告增加到 191 支；Meta 開始投網紅合作廣告（貼文標 #ad）。</span><span class="chip hi">Google、Meta 廣告庫</span></li>
+  </ol>
+</section>
+
+<section id="downloads">
+  <h2>下載量與廣告投放</h2>
+  <p class="body">上圖是 Google Play 每月推估下載，下圖是同月份在投的 Google 廣告數量。7 月以前兩條曲線同步起落，2 月最明顯：TikTok 當月幾乎沒量，下載卻衝到最高。7 月之後下載成長了約三倍，Google 廣告數只多了一倍，多出來的部分主要來自 TikTok 和 Meta 的付費推廣，見下一節。</p>
+  <div class="chartbox">
+    <div class="chart-title">Google Play 每月推估下載（萬）</div>
+    <div class="chart-scroll"><svg id="dlChart" viewBox="0 0 820 260" role="img" aria-label="Sekai Google Play 每月推估下載長條圖，2025 年 11 月到 2026 年 9 月"></svg></div>
+    <div class="chart-title">Google 當月在投廣告數（支）</div>
+    <div class="chart-scroll"><svg id="adsChart" viewBox="0 0 820 240" role="img" aria-label="Sekai Google 每月在投廣告數長條圖，2025 年 11 月到 2026 年 9 月"></svg></div>
+    <p class="note">下載推估方法：從 Wayback Machine 的 Google Play 快照讀出評論數，算每 30 天新增評論，再乘上約 150（每 1 則評論約對應的下載數）。快照區間不完全等於自然月，所以有幾個月是同一個數字。</p>
+  </div>
+  <div class="evidence">
+    <div><b>起點吻合</b><span>Google 廣告 2025/11/21 開始投，是小遊戲上線的同一週。</span></div>
+    <div><b>2 月加碼、下載衝高</b><span>在投廣告從 59 支加到 100 支，官方 TikTok 當月只有 3.5 萬播放，下載卻到每月約 44 萬。</span></div>
+    <div><b>3 月收手、下載腰斬</b><span>2 月那 100 支有 72 支在 3/15 前停掉，當月只新上 2 支，下載掉到約 23 萬。</span></div>
+  </div>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>Google Play 快照區間</th><th>每 30 天新增評論</th><th>推估每月下載</th><th>當時發生什麼</th></tr></thead>
+      <tbody>
+        <tr><td class="n">2025/04 – 08</td><td class="n">430–750</td><td class="v">6–12 萬</td><td>角色扮演時期</td></tr>
+        <tr><td class="n">2025/08 – 10</td><td class="n">270</td><td class="v">約 4 萬</td><td>低谷</td></tr>
+        <tr><td class="n">2025/10 – 2026/01</td><td class="n">660–760</td><td class="v">9–12 萬</td><td>11 月上線小遊戲、開始投 Google，12 月改名</td></tr>
+        <tr class="peak"><td class="n">2026/01/23 – 03/11</td><td class="n">2,940</td><td class="v">41–47 萬</td><td>Google 廣告加到 100 支</td></tr>
+        <tr><td class="n">2026/03/11 – 04/17</td><td class="n">1,540</td><td class="v">22–25 萬</td><td>Google 廣告收回</td></tr>
+        <tr><td class="n">2026/04/17 – 06/27</td><td class="n">3,420</td><td class="v">48–55 萬</td><td>Google 回升、5/13 Meta 放量、6/1 融資</td></tr>
+        <tr class="peak"><td class="n">2026/06/27 – 07/22</td><td class="n">9,000</td><td class="v">126–144 萬</td><td>爆發</td></tr>
+        <tr class="peak"><td class="n">2026/07/22 – 08/19</td><td class="n">8,890</td><td class="v">125–142 萬</td><td>Symphony Sketchpad 等爆款</td></tr>
+        <tr class="peak"><td class="n">2026/08/19 – 09/27</td><td class="n">11,080</td><td class="v">155–177 萬</td><td>Google 廣告增加到 191 支</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="body">幾個對得上的里程碑：Google Play 在 2025 年 6–7 月破 100 萬下載，2026/7/22 的快照已經顯示 500 萬+，AndroidRank 估 9/13 累計約 630 萬。目前 Google Play 仍顯示 500 萬+，代表還沒到 1,000 萬。</p>
+</section>
+
+
+<section id="split">
+  <h2>自然流量 vs 付費買量</h2>
+  <p class="body">公開資料沒辦法直接拆出兩者，以下用間接證據推估。結論是：從頭到尾都以付費為主，真正的自然流量主要是買量帶出來的連帶效果，例如排名上升後在商店被搜到、逛到。</p>
+  <div class="evidence">
+    <div><b>3 月砍廣告，只有 Android 掉</b><span>Google 在投廣告從 100 支砍到 35 支，Android 下載腰斬，iOS 反而繼續成長。代表 2 月 Android 那波主要是 Google 廣告買來的。</span></div>
+    <div><b>千萬播放的按讚率不像自然爆紅</b><span>8 支百萬播放以上的官方影片，按讚率落在 0.4–2.4%，多數低於 1%。自然爆紅通常有 5–15%。總播放 9,900 萬，粉絲卻只有 11.4 萬。</span></div>
+    <div><b>TikTok 上沒有素人傳播</b><span>標籤底下除了官方號，只有批量註冊帳號和粉絲數幾十到幾百的「xxx.games」帳號。分享連結帶來的網頁流量也小到 Similarweb 不顯示。</span></div>
+  </div>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>期間</th><th>Android 月下載</th><th>Google 在投廣告</th><th>推估付費佔比</th><th>主要依據</th></tr></thead>
+      <tbody>
+        <tr><td class="n">2025/11 – 2026/01</td><td class="n">約 10 萬</td><td class="n">18–59</td><td>量小，無法拆</td><td>剛開始買量</td></tr>
+        <tr class="peak"><td class="n">2026/02</td><td class="n">約 44 萬</td><td class="n">100</td><td><b>至少一半</b></td><td>3 月砍掉 65 支廣告，下載少了約 21 萬</td></tr>
+        <tr><td class="n">2026/03 – 06</td><td class="n">23–51 萬</td><td class="n">35–82</td><td>約一半</td><td>Google 回升、Meta 5/13 放量</td></tr>
+        <tr class="peak"><td class="n">2026/07 – 09</td><td class="n">130–170 萬</td><td class="n">114–191</td><td><b>多數，約 60–80%</b></td><td>Google、Meta 加上 TikTok 推廣三路同時買量</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">這是量級推估，不是精準數字。廣告數量不等於花費，TikTok 推廣也無法直接查到，只能從互動率判斷。要精準拆分需要 Sensor Tower、AppMagic 這類付費工具。</p>
+  <p class="body">成本算得過來嗎？8 月前後兩個月官方 TikTok 約 8,800 萬次播放，以每千次 3–8 美元算，花費約 26–70 萬美元。如果每次安裝成本壓在 0.3–1 美元，三個平台加起來每月約 50–150 萬美元，對剛拿到 2,000 萬美元 A 輪的公司是負擔得起的。關鍵在於素材夠便宜。</p>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>iOS 快照區間（美區）</th><th>每 30 天新增評分</th><th>同期發生什麼</th></tr></thead>
+      <tbody>
+        <tr><td class="n">2025/09 – 12</td><td class="n">約 40</td><td>角色扮演時期尾聲</td></tr>
+        <tr><td class="n">2025/12/30 – 2026/02/17</td><td class="n">645</td><td>TikTok 鋪量、Meta 測素材</td></tr>
+        <tr><td class="n">2026/02/17 – 03/11</td><td class="n">772</td><td>Android 同期因砍廣告腰斬，iOS 沒掉</td></tr>
+        <tr><td class="n">2026/03/11 – 04/08</td><td class="n">279</td><td>冷掉</td></tr>
+        <tr><td class="n">2026/04/08 – 05/05</td><td class="n">857</td><td>回升</td></tr>
+        <tr><td class="n">2026/05/05 – 06/03</td><td class="n">2,855</td><td>Meta 放量（廣告導向 App Store）</td></tr>
+        <tr><td class="n">2026/06/03 – 07/12</td><td class="n">2,811</td><td>維持</td></tr>
+        <tr><td class="n">2026/07/12 – 08/01</td><td class="n">1,047</td><td>放緩</td></tr>
+        <tr class="peak"><td class="n">2026/08/01 – 09/09</td><td class="n">7,390</td><td>TikTok 千萬播放影片期，很可能是付費推廣</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="body">另外查了 Google 上搜「sekai app」的熱度：7–8 月完全沒變，高峰反而在 1 月初和 5 月底。這也不像有大規模口碑擴散。</p>
+</section>
+
+<section id="chart">
+  <h2>官方 TikTok 每月播放量</h2>
+  <p class="body">每月播放量是當月發布的影片、截至 2026-09-26 的累計播放數加總。9 月只統計到 26 日。</p>
+  <div class="chartbox">
+    <div class="legend">
+      <span><i style="background:var(--accent)"></i>當月播放量</span>
+      <span><i style="background:var(--hit)"></i>關鍵事件</span>
+    </div>
+    <div class="chart-scroll"><svg id="viewsChart" viewBox="0 0 820 400" role="img" aria-label="Sekai 官方 TikTok 每月播放量長條圖，2025 年 11 月到 2026 年 9 月"></svg></div>
+    <p class="note">發片數：2025/11 起依序為 2、7、17、6、19、17、37、17、51、78、63 支。7 月之後發片量和播放量同時暴增。</p>
+  </div>
+</section>
+
+<section id="hits">
+  <h2>十大爆款影片</h2>
+  <p class="body">314 支影片中有 198 支不到 5,000 播放，中位數只有一兩千。流量幾乎全部來自少數爆款，而爆款大多是「聲音類小遊戲」。這些爆款的按讚率多數低於 1%，很可能是先自然測出表現好的，再花錢推廣放大。</p>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>發布日</th><th>播放</th><th>影片文案</th><th>類型</th></tr></thead>
+      <tbody id="hitsBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="channels">
+  <h2>傳播渠道</h2>
+  <p class="body">早期和 7 月後的主力渠道不同，這裡依整體影響排序。</p>
+  <div class="list">
+    <div class="item new"><div class="c"><h3>Google 付費買量（早期主力）</h3>
+      <p>廣告主是已通過驗證的中國公司「北京幂象科技有限公司」，名下 469 支廣告。</p>
+      <ul>
+        <li>主力是 App 安裝影片廣告：真人創作者出鏡，下方帶 Google Play「Install」按鈕，投到 YouTube、Google Play 和各種網站。抽查的一支投放在美國。</li>
+        <li>搜尋廣告買「Sonic Unblocked」這種學生在學校找遊戲的關鍵字，以及「AI Video Creator」。</li>
+        <li>在投數量：2025/11 18 支 → 2026/02 100 支 → 03 月 35 支 → 09 月 191 支。</li>
+      </ul></div></div>
+    <div class="item"><div class="c"><h3>TikTok 官方號加付費推廣（7 月後主力）</h3><p>11.4 萬粉絲、140 萬讚。高峰時一天發十幾支，8 月單月 78 支。千萬播放的影片按讚率多數低於 1%，很可能是花錢推廣官方影片。</p></div></div>
+    <div class="item"><div class="c"><h3>Meta 付費廣告</h3><p>2026 年 1 月開始測素材，每支只跑幾小時，歐盟觸及只有一兩百人。5/13 起放量，累計約 120 支素材，現在仍在投。素材幾乎都是 TikTok 原片；另一種主打「做好小遊戲，連結丟 WhatsApp 群組挑戰朋友」。</p></div></div>
+    <div class="item new"><div class="c"><h3>TikTok 創作者和批量帳號</h3><p>2026 年 1 月 2–27 日集中發片，全部用同一組標籤（#createsekai #sekairot）。一部分是真人小網紅，一部分是「英文名＋姓＋4 位數字」這種明顯批量註冊的帳號。8–9 月又出現一整批名字很像的「xxx.games」帳號。9 月開始投標 #ad 的網紅合作廣告。</p></div></div>
+    <div class="item"><div class="c"><h3>產品內分享連結</h3><p>每個小遊戲都有連結，朋友不用下載 App，瀏覽器打開就能玩。</p></div></div>
+    <div class="item"><div class="c"><h3>搜尋流量承接</h3>
+      <ul>
+        <li>用爆紅小遊戲的名字開 App Store 活動頁，例如「Get On Symphony Sketchpad」，看完影片去搜的人會直接找到 Sekai。</li>
+        <li>每個小遊戲有獨立網頁，標題寫成「Games Like Chrome Music Lab」，吃「類似某某遊戲」的搜尋。</li>
+        <li>iOS 掛在競爭小的「開發者工具」類別，排到第 3 名。</li>
+      </ul></div></div>
+    <div class="item"><div class="c"><h3>社群和新聞</h3><p>Discord 約 2 萬人，另有 Reddit、Instagram、Facebook，影片同步發。融資由 Axios 獨家報導，新聞稿放具體案例：一個 20 歲用戶做的 Coachella 性格測驗，一個週末 5 萬人玩。</p></div></div>
+  </div>
+</section>
+
+<section id="web">
+  <h2>網站流量</h2>
+  <p class="body">網站流量很小，Sekai 基本上是純 App 的打法。</p>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>網域</th><th>流量（Similarweb）</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr><td class="n">sekaiapp.com</td><td>2026/6–8 月合計約 8.1 萬訪問，每月不到 3 萬</td><td>官網。比上月少 15.7%；75% 來自自然搜尋；美國佔 30%</td></tr>
+        <tr><td class="n">sekai.ai</td><td>太小，不顯示數字；全球排名約 116 萬</td><td>網頁版小遊戲。74% 來自自然搜尋；美國佔 80%</td></tr>
+        <tr><td class="n">sekai.chat</td><td>太小，不顯示數字；全球排名約 92 萬</td><td>舊網域，比上月少 33%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="tactics">
+  <h2>傳播手段</h2>
+  <div class="list">
+    <div class="item new"><div class="c"><h3>從第一天就付費買量，用開關控制節奏</h3><p>產品一上線就在 Google 投安裝廣告，2 月加碼測上限，3 月收手，4 月後再逐步加回。買來的用戶基數讓商店排名和評論先動起來。</p></div></div>
+    <div class="item"><div class="c"><h3>大量發片，挑出好素材再花錢放大</h3><p>不追求每支都好。198 支不到 5,000 播放，但前 10 支撐起 81% 的總播放，而這幾支很可能都有付費推廣。</p></div></div>
+    <div class="item"><div class="c"><h3>影片看起來不像廣告</h3><p>沒有真人出鏡，直接錄手機螢幕玩小遊戲，配一句好奇或共鳴文案，例如「一直亂畫直到…」「我晚上的音量 vs 別人的音量」。最紅那支有 2.1 萬次收藏，代表大家想自己去玩。</p></div></div>
+    <div class="item"><div class="c"><h3>爆款多是聲音類玩具</h3><p>畫一條線會演奏熟悉的歌，或聽某個角色是什麼聲音。借用年輕族群熟悉的角色：Minecraft 的 Steve、神奇數位馬戲團的 Jax、卡通 Larva。</p></div></div>
+    <div class="item"><div class="c"><h3>一個爆款延伸成系列</h3><p>Symphony Sketchpad 爆紅後馬上出教學版（260 萬播放），並開專屬標籤和 App Store 活動頁。</p></div></div>
+    <div class="item"><div class="c"><h3>素材便宜，而且不像廣告</h3><p>螢幕錄影加一句好奇文案，製作成本極低。Meta 上先用大量素材各跑幾小時測試，有效的再長期投放，把每次安裝成本壓低。</p></div></div>
+    <div class="item"><div class="c"><h3>產品設計本身幫忙傳播</h3><p>每個小遊戲都有「Remix」按鈕，首頁是滑不完的小遊戲，連結在瀏覽器就能玩，完全免費、沒有訂閱。</p></div></div>
+    <div class="item"><div class="c"><h3>讓用戶當主角</h3><p>官方影片會寫「去 Sekai 搜 LFS 玩他的作品」，把創作者推出去，創作者也會自己轉發。</p></div></div>
+  </div>
+  <p class="cost">代價：轉型後原本玩角色扮演的老用戶很不滿。Sekai 的 Reddit 上最熱門的貼文都在問「發生什麼事」，要求把角色扮演功能還回來。</p>
+</section>
+
+
+<section id="limits" class="limits">
+  <h2>資料限制</h2>
+  <ul>
+    <li>沒有官方的日活或下載數據。下載量是用 Google Play 評論數換算的，實際可能有 ±20% 以上的誤差。</li>
+    <li>iOS 下載查不到，只知道美區 App Store 有 2.3 萬則評分，實際總下載應該比上表多。</li>
+    <li>Google 和 Meta 廣告庫只看得到有投、投多久、投幾支，看不到花了多少錢。</li>
+    <li>TikTok 付費廣告看不到：TikTok 廣告庫只公開歐盟投放。</li>
+    <li>北京幂象科技和 Sekai 的關係沒有官方說明。廣告內容確定是 Sekai，但這家公司是 Sekai 的團隊還是代投公司，查不到。</li>
+    <li>廣告和下載同步起落是很強的證據，但仍是相關性，不是官方證實的因果。</li>
+    <li>2026 年 2–3 月的評論跳升，也可能部分來自 App 開始主動請用戶評分。</li>
+    <li>自然流量和付費的佔比是量級推估，不是精準數字。TikTok 影片是否付費推廣是從按讚率判斷，不是官方資料。要精準拆分需要付費工具，例如 Sensor Tower 或 AppMagic。</li>
+    <li>iOS 數據只有美區評分數，沒有下載量，也沒有其他國家。</li>
+    <li>TikTok 只統計了官方帳號，沒有算到素人創作者的影片。</li>
+  </ul>
+</section>
+
+<section id="sources" class="sources">
+  <h2>資料來源</h2>
+  <ul>
+    <li><a href="https://adstransparency.google.com/advertiser/AR07338665835327651841?region=anywhere" target="_blank" rel="noopener">Google 廣告透明度中心：北京幂象科技有限公司</a></li>
+    <li><a href="https://adstransparency.google.com/advertiser/AR07338665835327651841/creative/CR06778741256869642241?region=anywhere" target="_blank" rel="noopener">Google 廣告範例：Sekai App 安裝影片廣告</a></li>
+    <li><a href="https://www.facebook.com/ads/library/?active_status=all&amp;ad_type=all&amp;country=US&amp;q=sekai%20app&amp;search_type=keyword_unordered" target="_blank" rel="noopener">Meta 廣告資料庫：sekai app</a></li>
+    <li><a href="https://www.facebook.com/ads/library/?id=914822230993180" target="_blank" rel="noopener">Meta 廣告範例：1 月測試廣告（歐盟觸及 122 人）</a></li>
+    <li><a href="https://web.archive.org/web/2025*/play.google.com/store/apps/details?id=chat.sekai.app*" target="_blank" rel="noopener">Wayback Machine：Google Play 頁面歷史快照</a></li>
+    <li><a href="https://web.archive.org/web/2025*/apps.apple.com/us/app/sekai-create-remix-play/id6504506653*" target="_blank" rel="noopener">Wayback Machine：App Store 頁面歷史快照</a></li>
+    <li><a href="https://trends.google.com/trends/explore?date=2025-09-01%202026-09-27&amp;q=sekai%20app" target="_blank" rel="noopener">Google Trends：sekai app</a></li>
+    <li><a href="https://www.androidrank.org/application/sekai/chat.sekai.app" target="_blank" rel="noopener">AndroidRank：Sekai 安裝里程碑</a></li>
+    <li><a href="https://www.similarweb.com/website/sekaiapp.com/" target="_blank" rel="noopener">Similarweb：sekaiapp.com</a></li>
+    <li><a href="https://www.similarweb.com/website/sekai.ai/" target="_blank" rel="noopener">Similarweb：sekai.ai</a></li>
+    <li><a href="https://www.similarweb.com/website/sekai.chat/" target="_blank" rel="noopener">Similarweb：sekai.chat</a></li>
+    <li><a href="https://www.axios.com/2026/06/01/sekai-mini-app-startup-funding" target="_blank" rel="noopener">Axios：Sekai raises $20M for AI app creation</a></li>
+    <li><a href="https://www.globenewswire.com/news-release/2026/06/03/3306441/0/en/sekai-raises-26m-in-seed-and-series-a-as-users-create-play-and-remix-15-million-mini-apps.html" target="_blank" rel="noopener">GlobeNewswire：融資新聞稿</a></li>
+    <li><a href="https://gamesbeat.com/from-tiktok-to-mini-apps-how-sekai-wants-to-transform-vibe-coding-into-a-creator-medium/" target="_blank" rel="noopener">GamesBeat：From TikTok to mini apps</a></li>
+    <li><a href="https://www.isekaizero.ai/blog/sekai-ai-review" target="_blank" rel="noopener">ISEKAI ZERO：Sekai AI Review</a></li>
+    <li><a href="https://apps.apple.com/us/app/sekai-create-remix-play/id6504506653" target="_blank" rel="noopener">App Store：Sekai</a></li>
+    <li><a href="https://apps.apple.com/us/app/sekai-create-remix-play/id6504506653?eventid=6809669832" target="_blank" rel="noopener">App Store 活動頁：Get On Symphony Sketchpad</a></li>
+    <li><a href="https://play.google.com/store/apps/details?id=chat.sekai.app&amp;hl=en_US" target="_blank" rel="noopener">Google Play：Sekai</a></li>
+    <li><a href="https://sekai.ai/play/symphony-sketchpad-88881f16" target="_blank" rel="noopener">Symphony Sketchpad 網頁版</a></li>
+    <li><a href="https://www.tiktok.com/@sekaiapp" target="_blank" rel="noopener">TikTok 官方帳號 @sekaiapp</a></li>
+    <li><a href="https://www.tiktok.com/@sekaiapp/video/7667887685398301973" target="_blank" rel="noopener">TikTok 爆款影片（1,580 萬播放）</a></li>
+    <li><a href="https://www.tiktok.com/tag/sekairot" target="_blank" rel="noopener">TikTok 標籤 #sekairot</a></li>
+    <li><a href="https://discord.com/invite/VTzM7S8FsP" target="_blank" rel="noopener">Sekai Discord</a></li>
+  </ul>
+</section>
+
+<footer>TikTok 數據來自官方帳號公開頁面，影片發布日由影片 ID 換算，播放數為 2026-09-26 的讀數，按讚數為 2026-09-28 的讀數。Google 廣告數據為 2026-09-28 從 Google 廣告透明度中心讀取。</footer>
+</div>
+
+<script>
+(function(){
+  const NS='http://www.w3.org/2000/svg';
+  const MONTHS=['25/11','25/12','26/01','26/02','26/03','26/04','26/05','26/06','26/07','26/08','26/09'];
+
+  function barChart(id,{values,max,step,H,T,color,fmt,tick,events=[]}){
+    const svg=document.getElementById(id), W=820,L=64,R=16,B=40, ph=H-T-B;
+    const el=(n,a,txt)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e;};
+    const y=v=>T+ph-(v/max)*ph;
+    for(let v=0;v<=max;v+=step){
+      el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:'var(--line)','stroke-width':1});
+      el('text',{x:L-8,y:y(v)+4,'text-anchor':'end','font-size':11,fill:'var(--muted)','font-family':'IBM Plex Mono, monospace'},tick(v));
+    }
+    const slot=(W-L-R)/values.length, bw=slot*0.56;
+    values.forEach((v,i)=>{
+      const cx=L+slot*i+slot/2, h=Math.max(1.5,y(0)-y(v));
+      el('rect',{x:cx-bw/2,y:y(0)-h,width:bw,height:h,rx:3,fill:color});
+      el('text',{x:cx,y:y(0)-h-7,'text-anchor':'middle','font-size':11,'font-weight':600,fill:'var(--fg)','font-family':'IBM Plex Mono, monospace'},fmt(v));
+      el('text',{x:cx,y:H-B+18,'text-anchor':'middle','font-size':11,fill:'var(--muted)','font-family':'IBM Plex Mono, monospace'},MONTHS[i]);
+    });
+    events.forEach((ev,k)=>{
+      const cx=L+slot*ev.p, ly=18+k*16;
+      el('line',{x1:cx,x2:cx,y1:ly+4,y2:y(0),stroke:'var(--hit)','stroke-width':1.5,'stroke-dasharray':'3 3'});
+      el('circle',{cx:cx,cy:ly+4,r:3.5,fill:'var(--hit)'});
+      el('text',{x:cx+8,y:ly+8,'text-anchor':'start','font-size':12,'font-weight':700,fill:'var(--hit)','font-family':'Noto Sans TC, sans-serif'},ev.label);
+    });
+  }
+
+  const wan=v=>v>=1e4?(v/1e4>=100?Math.round(v/1e4).toLocaleString('en-US'):(v/1e4).toFixed(1))+'萬':v.toLocaleString('en-US');
+
+  barChart('viewsChart',{
+    values:[32951,87219,877799,35355,34660,483215,1887422,33118,35314862,53377702,7069541],
+    max:60e6, step:10e6, H:400, T:64, color:'var(--accent)', fmt:wan,
+    tick:v=>v===0?'0':(v/1e4).toLocaleString('en-US')+'萬',
+    events:[{p:6+12/31,label:'5/13 Meta 放量'},{p:7,label:'6/1 A 輪融資'},{p:8+28/31,label:'7/29 爆款'}]
+  });
+
+  barChart('dlChart',{
+    values:[9.9,11.4,11.4,44,23.1,51.3,51.3,51.3,135,133,166],
+    max:180, step:60, H:260, T:24, color:'var(--accent)', fmt:v=>(v<20?v.toFixed(1):Math.round(v))+'萬',
+    tick:v=>v+'萬'
+  });
+
+  barChart('adsChart',{
+    values:[18,36,59,100,35,40,54,82,114,154,191],
+    max:200, step:50, H:240, T:24, color:'var(--paid)', fmt:v=>String(v),
+    tick:v=>String(v)
+  });
+
+  const hits=[
+    ['2026-08-17',16.6,'Messing around until different what STEVE sounds like','角色聲音'],
+    ['2026-07-29',15.8,'Does this sound familiar?','Symphony Sketchpad'],
+    ['2026-07-26',13.8,'my volume at night vs everyone else’s volume at night','生活共鳴梗'],
+    ['2026-08-29',13.6,'the way i hit pause IMMEDIATELY','生活共鳴梗'],
+    ['2026-08-22',5.2,'messing around until I heard this','聲音玩具'],
+    ['2026-08-20',3.7,'Was not expecting red larva to actually sound like this','角色聲音'],
+    ['2026-08-06',3.2,'Extrovert vs introvert energy levels','生活共鳴梗'],
+    ['2026-09-17',3.0,'Play games on Instagram during class','情境梗'],
+    ['2026-07-31',2.8,'Summer is almost over already??','情境梗'],
+    ['2026-08-23',2.8,'NEED to try this','好奇心'],
+  ];
+  const sound=new Set(['角色聲音','Symphony Sketchpad','聲音玩具']);
+  document.getElementById('hitsBody').innerHTML=hits.map(([d,v,c,t])=>
+    `<tr><td class="num">${d}</td><td class="v">${Math.round(v*100).toLocaleString('en-US')}萬</td><td class="cap">${c}</td><td><span class="tag${sound.has(t)?'':' b'}">${t}</span></td></tr>`).join('');
+})();
+</script>
