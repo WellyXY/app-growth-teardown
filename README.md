@@ -15,6 +15,8 @@
 7. 綜合判斷：自然 vs 付費的量級範圍、成本驗算
 8. 產出 HTML 報告
 
+沒有手機 App 的網站／訂閱制產品也適用：用分月訪問、來源佔比、YouTube 每日增量、Meta 觸及和素材內容取代下載曲線，見 [`references/web-product.md`](references/web-product.md)。
+
 範例成品：[`assets/example-report-sekai.html`](assets/example-report-sekai.html)（Sekai 的增長拆解，資料截至 2026-09-28）。
 
 ## 安裝
@@ -41,6 +43,7 @@ python3 -m venv ~/.cache/app-growth-teardown/venv
 | `SKILL.md` | 分析流程與寫作原則 |
 | `references/methods.md` | 每一步的做法、判斷門檻、限制 |
 | `references/pitfalls.md` | 工具與資料來源踩過的坑 |
+| `references/web-product.md` | 網站／訂閱制產品的執行順序、渠道消耗、素材、毛利、犯過的錯、交付檢查表 |
 | `references/report-outline.md` | 報告結構 |
 | `scripts/play_wayback_history.py` | Google Play 評論數歷史 → 每月下載推估 |
 | `scripts/appstore_wayback_history.py` | App Store 評分數歷史 |
@@ -50,6 +53,9 @@ python3 -m venv ~/.cache/app-growth-teardown/venv
 | `scripts/tiktok_ad_flags.py` | 讀 TikTok 影片頁的 `isAd` 等標記 |
 | `scripts/tiktok_id_to_date.py` | TikTok 影片 ID 換算發文時間 |
 | `scripts/google_ads_transparency.js` | 拉 Google 廣告主的所有素材與投放日期 |
+| `scripts/youtube_views_delta.py` | 隔天量 YouTube 廣告影片的觀看增量 |
+| `scripts/meta_ad_reach.js` | 讀 Meta 廣告觸及，連地區一起讀 |
+| `scripts/video_frames.js` | 不下載就看影片廣告的分鏡、字幕與口播 |
 
 ## 注意
 
